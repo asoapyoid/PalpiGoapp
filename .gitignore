@@ -6,3 +6,9 @@ coverage/
 *.log
 .env*
 !.env.example
+*.keystore
+*.jks
+*.p12
+android-apk-src/release-key*.pem
+android-apk-src/signing-lineage.bin
+android-apk-src/bin/
