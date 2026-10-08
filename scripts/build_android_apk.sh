@@ -8,6 +8,10 @@ COMPILE_SDK="${ANDROID_COMPILE_SDK:-34}"
 OUTPUT="${1:-$ROOT/build/PalpiGO.apk}"
 
 : "${ANDROID_HOME:?Set ANDROID_HOME or ANDROID_SDK_ROOT}"
+: "${PALPIGO_LEGACY_KEYSTORE:?Set PALPIGO_LEGACY_KEYSTORE for Android versions below API 28}"
+: "${PALPIGO_LEGACY_KEY_ALIAS:?Set PALPIGO_LEGACY_KEY_ALIAS}"
+: "${PALPIGO_LEGACY_KEYSTORE_PASSWORD:?Set PALPIGO_LEGACY_KEYSTORE_PASSWORD}"
+: "${PALPIGO_LEGACY_KEY_PASSWORD:?Set PALPIGO_LEGACY_KEY_PASSWORD}"
 : "${PALPIGO_KEYSTORE:?Set PALPIGO_KEYSTORE to the new release keystore outside the repository}"
 : "${PALPIGO_KEY_ALIAS:?Set PALPIGO_KEY_ALIAS}"
 : "${PALPIGO_KEYSTORE_PASSWORD:?Set PALPIGO_KEYSTORE_PASSWORD}"
@@ -21,6 +25,7 @@ for tool in aapt2 d8 zipalign apksigner; do
 done
 test -f "$PLATFORM" || { echo "Missing Android platform: $PLATFORM" >&2; exit 1; }
 test -f "$PALPIGO_KEYSTORE" || { echo "Signing keystore not found" >&2; exit 1; }
+test -f "$PALPIGO_LEGACY_KEYSTORE" || { echo "Legacy signing keystore not found" >&2; exit 1; }
 test -f "$PALPIGO_SIGNING_LINEAGE" || { echo "Signing lineage not found" >&2; exit 1; }
 
 WORK="$(mktemp -d)"
@@ -48,11 +53,19 @@ cp "$WORK/base.apk" "$WORK/unsigned.apk"
 
 mkdir -p "$(dirname "$OUTPUT")"
 "$TOOLS/apksigner" sign \
+    --lineage "$PALPIGO_SIGNING_LINEAGE" \
+    --ks "$PALPIGO_LEGACY_KEYSTORE" \
+    --ks-key-alias "$PALPIGO_LEGACY_KEY_ALIAS" \
+    --ks-pass env:PALPIGO_LEGACY_KEYSTORE_PASSWORD \
+    --key-pass env:PALPIGO_LEGACY_KEY_PASSWORD \
+    --v1-signing-enabled false \
+    --next-signer \
     --ks "$PALPIGO_KEYSTORE" \
     --ks-key-alias "$PALPIGO_KEY_ALIAS" \
     --ks-pass env:PALPIGO_KEYSTORE_PASSWORD \
     --key-pass env:PALPIGO_KEY_PASSWORD \
-    --lineage "$PALPIGO_SIGNING_LINEAGE" \
+    --signer-for-min-sdk-version 28 \
+    --signer-lineage "$PALPIGO_SIGNING_LINEAGE" \
     --rotation-min-sdk-version 28 \
     --out "$OUTPUT" \
     "$WORK/aligned.apk"
