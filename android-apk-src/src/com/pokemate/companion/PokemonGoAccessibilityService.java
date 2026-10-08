@@ -2044,6 +2044,7 @@ public class PokemonGoAccessibilityService extends AccessibilityService {
     }
 
     private void runCloudOcrOnBitmap(Bitmap bmp, final OcrScanCallback callback) {
+        HttpURLConnection conn = null;
         try {
             int targetW = 720;
             int targetH = Math.round(((float) bmp.getHeight() / bmp.getWidth()) * targetW);
@@ -2061,25 +2062,24 @@ public class PokemonGoAccessibilityService extends AccessibilityService {
                     + "&base64Image=" + URLEncoder.encode(base64Img, "UTF-8");
 
             URL url = new URL("https://api.ocr.space/parse/image");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn = (HttpURLConnection) url.openConnection();
             conn.setConnectTimeout(9000);
             conn.setReadTimeout(9000);
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);
             conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-            OutputStream os = conn.getOutputStream();
-            os.write(postBody.getBytes("UTF-8"));
-            os.flush();
-            os.close();
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(postBody.getBytes("UTF-8"));
+                os.flush();
             }
-            reader.close();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line);
+                }
+            }
 
             String json = sb.toString();
             Matcher m = Pattern.compile("\"ParsedText\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"").matcher(json);
@@ -2115,6 +2115,10 @@ public class PokemonGoAccessibilityService extends AccessibilityService {
                     }
                 }
             });
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
     }
 
@@ -2287,11 +2291,7 @@ public class PokemonGoAccessibilityService extends AccessibilityService {
         }
     }
 
-    private static final String[] OCR_API_KEYS = new String[]{
-            "helloworld",
-            "K85989477888957",
-            "K81893588288957"
-    };
+    private static final String[] OCR_API_KEYS = new String[]{"helloworld"};
 
     private String requestOcrSpaceText(Bitmap bmp, String ocrEngine) {
         try {
@@ -2301,6 +2301,7 @@ public class PokemonGoAccessibilityService extends AccessibilityService {
             String encodedImage = URLEncoder.encode(base64Img, "UTF-8");
 
             for (int k = 0; k < OCR_API_KEYS.length; k++) {
+                HttpURLConnection conn = null;
                 try {
                     String postBody = "apikey=" + OCR_API_KEYS[k]
                             + "&language=eng"
@@ -2310,7 +2311,7 @@ public class PokemonGoAccessibilityService extends AccessibilityService {
                             + "&base64Image=" + encodedImage;
 
                     URL url = new URL("https://api.ocr.space/parse/image");
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn = (HttpURLConnection) url.openConnection();
                     conn.setConnectTimeout(7500);
                     conn.setReadTimeout(7500);
                     conn.setRequestMethod("POST");
@@ -2321,21 +2322,21 @@ public class PokemonGoAccessibilityService extends AccessibilityService {
                     );
                     conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-                    OutputStream os = conn.getOutputStream();
-                    os.write(postBody.getBytes("UTF-8"));
-                    os.flush();
-                    os.close();
+                    try (OutputStream os = conn.getOutputStream()) {
+                        os.write(postBody.getBytes("UTF-8"));
+                        os.flush();
+                    }
 
                     int code = conn.getResponseCode();
                     if (code != 200) continue;
 
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                     StringBuilder sb = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        sb.append(line);
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            sb.append(line);
+                        }
                     }
-                    reader.close();
 
                     String json = sb.toString();
                     Matcher m = Pattern.compile("\"ParsedText\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"").matcher(json);
@@ -2351,7 +2352,12 @@ public class PokemonGoAccessibilityService extends AccessibilityService {
                     if (!res.isEmpty()) {
                         return res;
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                } finally {
+                    if (conn != null) {
+                        conn.disconnect();
+                    }
+                }
             }
             return "";
         } catch (Exception e) {

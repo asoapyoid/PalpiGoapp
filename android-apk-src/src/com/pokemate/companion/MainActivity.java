@@ -1384,9 +1384,10 @@ public class MainActivity extends Activity {
                 String errorMsg = null;
 
                 // Step A: Query direct APK binary attachment channel on ntfy.envs.net (prefer unexpired)
+                HttpURLConnection aConn = null;
                 try {
                     URL attachUrl = new URL("https://ntfy.envs.net/pokemate_apk_4e6c31bd/json?poll=1&since=2h");
-                    HttpURLConnection aConn = (HttpURLConnection) attachUrl.openConnection();
+                    aConn = (HttpURLConnection) attachUrl.openConnection();
                     aConn.setConnectTimeout(5000);
                     aConn.setReadTimeout(5000);
                     aConn.setRequestMethod("GET");
@@ -1410,7 +1411,12 @@ public class MainActivity extends Activity {
                         }
                     }
                     ar.close();
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                } finally {
+                    if (aConn != null) {
+                        aConn.disconnect();
+                    }
+                }
 
                 // Step B: Query all OTA manifest endpoints (global relays + saved/republished server URLs)
                 String savedOrigin = getSavedCustomServerOrigin();
@@ -1428,9 +1434,10 @@ public class MainActivity extends Activity {
                 endpoints.add(OTA_MANIFEST_URL);
 
                 for (int mIdx = 0; mIdx < endpoints.size(); mIdx++) {
+                    HttpURLConnection conn = null;
                     try {
                         URL url = new URL(endpoints.get(mIdx));
-                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                        conn = (HttpURLConnection) url.openConnection();
                         conn.setConnectTimeout(5500);
                         conn.setReadTimeout(5500);
                         conn.setRequestMethod("GET");
@@ -1483,6 +1490,10 @@ public class MainActivity extends Activity {
                     } catch (Exception e) {
                         if (remoteVersionCode < 0) {
                             errorMsg = e.getClass().getSimpleName();
+                        }
+                    } finally {
+                        if (conn != null) {
+                            conn.disconnect();
                         }
                     }
                 }
