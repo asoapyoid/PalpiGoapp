@@ -1,0 +1,13 @@
+{
+  "versionCode": 3,
+  "versionName": "1.2.2026",
+  "appName": "PalpiGO",
+  "apkFileName": "PalpiGO-v1.2.2026.apk",
+  "directApkUrl": "https://ntfy.envs.net/file/hZ9gGrIUq0YY.apk",
+  "secondaryApkUrl": "https://ntfy.adminforge.de/file/5TIuYpOtiHcX.apk",
+  "fallbackApkUrl": "https://ais-dev-bh2phvsi6uibgobjg436k4-420113228336.europe-west1.run.app/api/download/PalpiGO-v1.2.2026.apk",
+  "serverOrigin": "https://ais-dev-bh2phvsi6uibgobjg436k4-420113228336.europe-west1.run.app",
+  "publishedOrigin": "https://ais-pre-bh2phvsi6uibgobjg436k4-420113228336.europe-west1.run.app",
+  "devOrigin": "https://ais-dev-bh2phvsi6uibgobjg436k4-420113228336.europe-west1.run.app",
+  "changelog": "PalpiGO v1.2.2026: Published app OTA update fix, Legacy Evolution Moves Hub with active event detection, PvP/PvE evolution cap thresholds, and RAM-optimized memory allocation."
+}

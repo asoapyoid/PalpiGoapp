@@ -1,0 +1,8 @@
+{
+  "name": "Remix Palpi GO",
+  "description": "Android Pokémon GO companion app simulator with AccessibilityService auto-gift sender, WindowManager floating overlay, Field Research tracker, and Room database.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

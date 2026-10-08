@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PalpiGO</string>
+    <string name="a11y_label">PalpiGO Auto-Gift &amp; Quick Catch</string>
+    <string name="a11y_description">PalpiGO assists with Pokémon GO Friends List gifts, curveball throws, and on-screen Field Research OCR scanning.</string>
+    <color name="ic_launcher_bg">#0B192C</color>
+</resources>
