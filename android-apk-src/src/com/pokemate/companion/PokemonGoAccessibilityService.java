@@ -9,6 +9,7 @@ import android.graphics.ColorSpace;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.hardware.HardwareBuffer;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Base64;
@@ -139,15 +140,17 @@ public class PokemonGoAccessibilityService extends AccessibilityService {
     }
 
     public int[] getTrueScreenDimensions() {
-        try {
-            WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
-            if (wm != null) {
-                Rect b = wm.getMaximumWindowMetrics().getBounds();
-                if (b.width() > 0 && b.height() > 0) {
-                    return new int[]{b.width(), b.height()};
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+                if (wm != null) {
+                    Rect b = wm.getMaximumWindowMetrics().getBounds();
+                    if (b.width() > 0 && b.height() > 0) {
+                        return new int[]{b.width(), b.height()};
+                    }
                 }
-            }
-        } catch (Exception ignored) {}
+            } catch (Exception ignored) {}
+        }
         int w = getResources().getDisplayMetrics().widthPixels;
         int h = getResources().getDisplayMetrics().heightPixels;
         return new int[]{w > 0 ? w : 1080, h > 0 ? h : 2400};
