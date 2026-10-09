@@ -1,17 +1,17 @@
 # Android release and signing-key rotation
 
 Private signing keys must stay outside the repository and be stored in a
-dedicated secret manager. The checked-in release key was exposed. This
-compatibility build still needs that key for Android 8.x (API 26–27); it uses
-the rotated key and lineage from API 28 onward. To fully retire the exposed key,
-stop supporting API 26–27 and require those users to move to Android 9+.
+dedicated secret manager. The checked-in release key was exposed. Preserving
+updates on Android 8.x (API 26–27) still requires that legacy key for those
+devices; Android 9+ uses the rotated key and lineage. The legacy key remains a
+security risk for API 26–27 and cannot be considered revoked while supported.
+To fully retire it, stop supporting API 26–27 and require those users to move
+to Android 9+.
 
 1. Create a new Android signing keystore in secure storage and retain a backup.
    Do not commit either key, certificate-chain inputs, or passwords.
-2. Using the exposed old key only for this migration, create a lineage with
-   Android SDK `apksigner rotate`. Supply its private key and certificate via
-   old keystore/password and the new keystore/password via protected paths and
-   environment variables:
+2. Create a lineage with Android SDK `apksigner rotate`. Supply the old and new
+   keystores and passwords via protected paths and environment variables:
 
    ```sh
    "$ANDROID_HOME/build-tools/35.0.0/apksigner" rotate \
@@ -38,12 +38,12 @@ stop supporting API 26–27 and require those users to move to Android 9+.
    `scripts/build_android_apk.sh /secure/output/PalpiGO.apk`.
 5. Verify the APK updates existing installs on Android 8.x and Android 9+
   before changing production download endpoints. Keep the lineage and new
-  keystore backed up for all future updates.
+  keystore backed up for all future updates. Revoke exposed OCR API credentials
+  with their provider as well.
 
 The production APKs and download mirrors must not be replaced with a debug
 signature or an APK signed without the rotation lineage: Android 9+ existing
-installations would reject those updates. The exposed legacy key remains
-necessary for API 26–27 signatures and cannot be considered revoked while that
-support remains. Removing a key from the current checkout does not erase
-Git history, clones, or APKs already distributed from external mirrors; those
-need separate cleanup and credential/key revocation.
+installations would reject those updates. Removing keys from the current
+checkout does not erase Git history, clones, or APKs already distributed from
+external mirrors; those require coordinated history cleanup, mirror replacement,
+and credential revocation.
